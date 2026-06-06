@@ -5,29 +5,43 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Requests\UpdateCategoryRequest;
 
 class CategoryController extends Controller
 {
     /**
      * Display a listing.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $query = Category::query();
+
+        if ($request->filled('search')) {
+            $query->where(
+                'name',
+                'like',
+                '%' . $request->search . '%'
+            );
+        }
+
+        $categories = $query
+            ->latest()
+            ->paginate(10);
+
         return response()->json([
             'success' => true,
             'message' => 'Category list retrieved successfully',
-            'data' => Category::latest()->get()
+            'data' => $categories
         ]);
     }
 
     /**
      * Store a newly created resource.
      */
-    public function store(Request $request)
+    public function store(StoreCategoryRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name'
-        ]);
+        $validated = $request->validated();
 
         $category = Category::create($validated);
 
@@ -53,11 +67,9 @@ class CategoryController extends Controller
     /**
      * Update the specified resource.
      */
-    public function update(Request $request, Category $category)
+    public function update(UpdateCategoryRequest $request, Category $category)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name,' . $category->id
-        ]);
+        $validated = $request->validated();
 
         $category->update($validated);
 

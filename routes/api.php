@@ -25,5 +25,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 
-    Route::apiResource('categories', CategoryController::class);
+    Route::middleware('admin')->apiResource('categories',CategoryController::class);
 });
