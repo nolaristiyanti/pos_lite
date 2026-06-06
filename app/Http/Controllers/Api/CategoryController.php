@@ -85,6 +85,13 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
+        if ($category->products()->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Category is still used by products'
+            ], 422);
+        }
+
         $category->delete();
 
         return response()->json([
