@@ -12,7 +12,14 @@ class ProductController extends Controller
 {
     public function index(): JsonResponse
     {
-        $products = Product::with('category')->latest()->get();
+        $search = request('search');
+
+        $products = Product::with('category')
+            ->when($search, function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%");
+            })
+            ->latest()
+            ->paginate(10);
 
         return response()->json([
             'success' => true,
