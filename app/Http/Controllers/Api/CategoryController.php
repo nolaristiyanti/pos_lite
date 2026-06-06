@@ -99,4 +99,16 @@ class CategoryController extends Controller
             'message' => 'Category deleted successfully'
         ]);
     }
+
+    public function all()
+    {
+        $categories = Category::orderBy('name')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'All categories retrieved successfully',
+            'data' => $categories,
+        ]);
+    }
 }

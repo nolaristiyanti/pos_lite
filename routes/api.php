@@ -35,7 +35,9 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::get('/categories/all',[CategoryController::class, 'all']);
     Route::apiResource('categories', CategoryController::class);
+
     Route::apiResource('products', ProductController::class);
 });
 
