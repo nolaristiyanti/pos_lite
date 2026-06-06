@@ -13,25 +13,33 @@ class ReportController extends Controller
 {
     public function totalSales(): JsonResponse
     {
-        $totalSales = Transaction::sum('total_price');
-
         return response()->json([
             'success' => true,
             'message' => 'Total sales report retrieved successfully',
             'data' => [
-                'total_sales' => $totalSales,
+                'total_sales' => Transaction::sum('total_price'),
+                'total_transactions' => Transaction::count(),
             ],
         ]);
     }
 
     public function bestSellingProducts(): JsonResponse
     {
-        $products = TransactionDetail::select(
-                'product_id',
-                DB::raw('SUM(quantity) as total_sold')
+        $products = TransactionDetail::join(
+                'products',
+                'transaction_details.product_id',
+                '=',
+                'products.id'
             )
-            ->with('product:id,name')
-            ->groupBy('product_id')
+            ->select(
+                'products.id as product_id',
+                'products.name as product_name',
+                DB::raw('SUM(transaction_details.quantity) as total_sold')
+            )
+            ->groupBy(
+                'products.id',
+                'products.name'
+            )
             ->orderByDesc('total_sold')
             ->limit(10)
             ->get();
@@ -45,19 +53,24 @@ class ReportController extends Controller
 
     public function lowStockProducts(): JsonResponse
     {
+        $threshold = 5;
+
         $products = Product::select(
                 'id',
                 'name',
                 'stock'
             )
-            ->where('stock', '<=', 5)
+            ->where('stock', '<=', $threshold)
             ->orderBy('stock')
             ->get();
 
         return response()->json([
             'success' => true,
             'message' => 'Low stock products report retrieved successfully',
-            'data' => $products,
+            'data' => [
+                'threshold' => $threshold,
+                'products' => $products,
+            ],
         ]);
     }
 }
