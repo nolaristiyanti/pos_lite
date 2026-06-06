@@ -67,4 +67,40 @@ class TransactionController extends Controller
             'data' => $transaction,
         ], 201);
     }
+
+    public function index()
+    {
+        $query = Transaction::with('user');
+
+        if (request()->filled('payment_method')) {
+            $query->where(
+                'payment_method',
+                request('payment_method')
+            );
+        }
+
+        $transactions = $query
+            ->latest()
+            ->paginate(10);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Transaction list retrieved successfully',
+            'data' => $transactions,
+        ]);
+    }
+
+    public function show(Transaction $transaction)
+    {
+        $transaction->load([
+            'user',
+            'details.product',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Transaction retrieved successfully',
+            'data' => $transaction,
+        ]);
+    }
 }

@@ -28,6 +28,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
 
     Route::post('/checkout', [TransactionController::class, 'checkout']);
+    
+    Route::get('/transactions', [TransactionController::class, 'index']);
+    Route::get('/transactions/{transaction}', [TransactionController::class, 'show']);
 });
 
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
