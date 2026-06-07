@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
 
 class UserController extends Controller
 {
@@ -42,5 +43,41 @@ class UserController extends Controller
             'message' => 'User created successfully',
             'data' => $user,
         ], 201);
+    }
+
+    public function show(User $user): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'data' => $user,
+        ]);
+    }
+
+    public function update(
+        UpdateUserRequest $request,
+        User $user
+    ): JsonResponse {
+    
+        if (
+            auth()->id() === $user->id &&
+            $request->role !== 'admin'
+        ) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You cannot change your own role.',
+            ], 422);
+        }
+    
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'role' => $request->role,
+        ]);
+    
+        return response()->json([
+            'success' => true,
+            'message' => 'User updated successfully',
+            'data' => $user->fresh(),
+        ]);
     }
 }
