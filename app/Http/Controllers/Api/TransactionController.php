@@ -77,6 +77,13 @@ class TransactionController extends Controller
                 today()
             );
 
+        if (auth()->user()->role === 'cashier') {
+            $query->where(
+                'user_id',
+                auth()->id()
+            );
+        }
+
         if (request()->filled('payment_method')) {
             $query->where(
                 'payment_method',
