@@ -34,11 +34,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/transactions/{transaction}', [TransactionController::class, 'show']);
 });
 
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/products',[ProductController::class, 'index']);
+    Route::get('/products/{product}',[ProductController::class, 'show']);
+});
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get('/categories/all',[CategoryController::class, 'all']);
     Route::apiResource('categories', CategoryController::class);
 
-    Route::apiResource('products', ProductController::class);
+    Route::post('/products',[ProductController::class, 'store']);
+    Route::put('/products/{product}',[ProductController::class, 'update']);
+    Route::delete('/products/{product}',[ProductController::class, 'destroy']);
 });
 
 Route::middleware('auth:sanctum')->prefix('reports')->group(function () {
