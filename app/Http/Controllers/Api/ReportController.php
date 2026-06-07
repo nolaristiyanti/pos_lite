@@ -112,4 +112,35 @@ class ReportController extends Controller
             ],
         ]);
     }
+
+    public function cashierSummary()
+    {
+        $todaySales = Transaction::whereDate(
+            'created_at',
+            today()
+        )
+        ->where(
+            'user_id',
+            auth()->id()
+        )
+        ->sum('total_price');
+
+        $todayTransactions = Transaction::whereDate(
+            'created_at',
+            today()
+        )
+        ->where(
+            'user_id',
+            auth()->id()
+        )
+        ->count();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'my_sales_today' => $todaySales,
+                'my_transactions_today' => $todayTransactions,
+            ],
+        ]);
+    }
 }

@@ -41,6 +41,9 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::apiResource('products', ProductController::class);
 });
 
+Route::middleware('auth:sanctum')->prefix('reports')->group(function () {
+    Route::get('/cashier-summary',[ReportController::class, 'cashierSummary']);
+});
 Route::middleware(['auth:sanctum','admin'])->prefix('reports')->group(function () {
     Route::get('/total-sales',[ReportController::class, 'totalSales']);
     Route::get('/best-selling-products',[ReportController::class, 'bestSellingProducts']);
