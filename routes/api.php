@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,6 +46,8 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::post('/products',[ProductController::class, 'store']);
     Route::put('/products/{product}',[ProductController::class, 'update']);
     Route::delete('/products/{product}',[ProductController::class, 'destroy']);
+
+    Route::apiResource('users', UserController::class);
 });
 
 Route::middleware('auth:sanctum')->prefix('reports')->group(function () {
