@@ -45,4 +45,5 @@ Route::middleware(['auth:sanctum','admin'])->prefix('reports')->group(function (
     Route::get('/total-sales',[ReportController::class, 'totalSales']);
     Route::get('/best-selling-products',[ReportController::class, 'bestSellingProducts']);
     Route::get('/low-stock-products',[ReportController::class, 'lowStockProducts']);
+    Route::get('/dashboard-summary',[ReportController::class, 'dashboardSummary']);
 });

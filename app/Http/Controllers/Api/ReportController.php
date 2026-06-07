@@ -73,4 +73,43 @@ class ReportController extends Controller
             ],
         ]);
     }
+
+    public function dashboardSummary()
+    {
+        $todaySales = Transaction::whereDate(
+            'created_at',
+            today()
+        )->sum('total_price');
+
+        $todayTransactions = Transaction::whereDate(
+            'created_at',
+            today()
+        )->count();
+
+        $monthlyRevenue = Transaction::whereYear(
+            'created_at',
+            now()->year
+        )
+        ->whereMonth(
+            'created_at',
+            now()->month
+        )
+        ->sum('total_price');
+
+        $lowStockAlerts = Product::where(
+            'stock',
+            '<=',
+            10
+        )->count();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'today_sales' => $todaySales,
+                'today_transactions' => $todayTransactions,
+                'monthly_revenue' => $monthlyRevenue,
+                'low_stock_alerts' => $lowStockAlerts,
+            ],
+        ]);
+    }
 }
