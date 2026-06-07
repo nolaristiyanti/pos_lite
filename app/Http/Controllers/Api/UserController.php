@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreUserRequest;
 
 class UserController extends Controller
 {
@@ -25,5 +26,21 @@ class UserController extends Controller
             'success' => true,
             'data' => $users,
         ]);
+    }
+
+    public function store(StoreUserRequest $request)
+    {
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => $request->password,
+            'role' => $request->role,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User created successfully',
+            'data' => $user,
+        ], 201);
     }
 }
