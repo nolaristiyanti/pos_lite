@@ -80,4 +80,21 @@ class UserController extends Controller
             'data' => $user->fresh(),
         ]);
     }
+
+    public function destroy(User $user): JsonResponse
+    {
+        if ($user->id === auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You cannot delete your own account.',
+            ], 422);
+        }
+
+        $user->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User deleted successfully',
+        ]);
+    }
 }
