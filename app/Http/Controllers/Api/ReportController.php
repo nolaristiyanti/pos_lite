@@ -53,7 +53,7 @@ class ReportController extends Controller
 
     public function lowStockProducts(): JsonResponse
     {
-        $threshold = 5;
+        $threshold = 10;
 
         $products = Product::select(
                 'id',
@@ -62,7 +62,7 @@ class ReportController extends Controller
             )
             ->where('stock', '<=', $threshold)
             ->orderBy('stock')
-            ->get();
+            ->paginate(10);
 
         return response()->json([
             'success' => true,
