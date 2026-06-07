@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class TransactionController extends Controller
 {
@@ -70,7 +71,11 @@ class TransactionController extends Controller
 
     public function index()
     {
-        $query = Transaction::with('user');
+        $query = Transaction::with('user')
+            ->whereDate(
+                'created_at',
+                today()
+            );
 
         if (request()->filled('payment_method')) {
             $query->where(
