@@ -86,7 +86,7 @@ class ReportController extends Controller
             today()
         )->count();
 
-        $monthlyRevenue = Transaction::whereYear(
+        $monthlyRevenue = (int) Transaction::whereYear(
             'created_at',
             now()->year
         )
@@ -102,6 +102,67 @@ class ReportController extends Controller
             10
         )->count();
 
+        $averageOrderValue = $todayTransactions > 0
+            ? round($todaySales / $todayTransactions)
+            : 0;
+
+        $topSellingProduct = TransactionDetail::join(
+                'products',
+                'transaction_details.product_id',
+                '=',
+                'products.id'
+            )
+            ->join(
+                'transactions',
+                'transaction_details.transaction_id',
+                '=',
+                'transactions.id'
+            )
+            ->whereYear(
+                'transactions.created_at',
+                now()->year
+            )
+            ->whereMonth(
+                'transactions.created_at',
+                now()->month
+            )
+            ->select(
+                'products.id',
+                'products.name',
+                DB::raw('SUM(transaction_details.quantity) as total_sold')
+            )
+            ->groupBy(
+                'products.id',
+                'products.name'
+            )
+            ->orderByDesc('total_sold')
+            ->first();
+
+        $yesterdayRevenue = Transaction::whereDate(
+            'created_at',
+            now()->subDay()->toDateString()
+        )
+        ->sum('total_price');
+
+        if ($yesterdayRevenue == 0) {
+            $trendPercentage = $todaySales > 0 ? 100 : 0;
+        } else {
+            $trendPercentage = round(
+                (
+                    ($todaySales - $yesterdayRevenue)
+                    / $yesterdayRevenue
+                ) * 100,
+                1
+            );
+        }
+
+        $trendDirection = $trendPercentage >= 0
+            ? 'up'
+            : 'down';
+
+        $revenueDifference =
+            $todaySales - $yesterdayRevenue;
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -109,6 +170,22 @@ class ReportController extends Controller
                 'today_transactions' => $todayTransactions,
                 'monthly_revenue' => $monthlyRevenue,
                 'low_stock_alerts' => $lowStockAlerts,
+        
+                'average_order_value' => $averageOrderValue,
+        
+                'top_selling_product' => $topSellingProduct
+                    ? [
+                        'id' => $topSellingProduct->id,
+                        'name' => $topSellingProduct->name,
+                        'qty' => (int) $topSellingProduct->total_sold,
+                    ]
+                    : null,
+        
+                'revenue_trend' => [
+                    'percentage' => round($trendPercentage, 1),
+                    'direction' => $trendDirection,
+                    'difference' => $revenueDifference,
+                ],
             ],
         ]);
     }
