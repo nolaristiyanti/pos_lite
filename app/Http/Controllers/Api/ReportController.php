@@ -138,6 +138,46 @@ class ReportController extends Controller
             ->orderByDesc('total_sold')
             ->first();
 
+            $peakSalesHour = Transaction::selectRaw(
+                'HOUR(created_at) as hour,
+                 COUNT(*) as total_transactions'
+            )
+            ->whereDate(
+                'created_at',
+                today()
+            )
+            ->groupByRaw(
+                'HOUR(created_at)'
+            )
+            ->orderByDesc(
+                'total_transactions'
+            )
+            ->first();
+        
+        $peakHourData = null;
+        
+        if ($peakSalesHour) {
+        
+            $startHour = str_pad(
+                $peakSalesHour->hour,
+                2,
+                '0',
+                STR_PAD_LEFT
+            );
+        
+            $endHour = str_pad(
+                ($peakSalesHour->hour + 1) % 24,
+                2,
+                '0',
+                STR_PAD_LEFT
+            );
+        
+            $peakHourData = [
+                'hour' => "{$startHour}:00 - {$endHour}:00",
+                'transactions' => (int) $peakSalesHour->total_transactions,
+            ];
+        }
+        
         $yesterdayRevenue = Transaction::whereDate(
             'created_at',
             now()->subDay()->toDateString()
@@ -180,6 +220,8 @@ class ReportController extends Controller
                         'qty' => (int) $topSellingProduct->total_sold,
                     ]
                     : null,
+        
+                'peak_sales_hour' => $peakHourData,
         
                 'revenue_trend' => [
                     'percentage' => round($trendPercentage, 1),
