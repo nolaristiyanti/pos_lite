@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
 {
+    private const BEST_SELLING_LIMIT = 5;
+    private const SLOW_MOVING_LIMIT = 5;
+    private const LOW_STOCK_THRESHOLD = 10;
+
     public function totalSales(): JsonResponse
     {
         $this->validateDateRange();
@@ -81,7 +85,7 @@ class ReportController extends Controller
             'products.name'
         )
         ->orderByDesc('total_sold')
-        ->limit(10)
+        ->limit(self::BEST_SELLING_LIMIT)
         ->get();
 
         return response()->json([
@@ -93,7 +97,7 @@ class ReportController extends Controller
 
     public function lowStockProducts(): JsonResponse
     {
-        $threshold = 10;
+        $threshold = self::LOW_STOCK_THRESHOLD;
 
         $products = Product::select(
                 'id',
@@ -139,7 +143,7 @@ class ReportController extends Controller
         $lowStockAlerts = Product::where(
             'stock',
             '<=',
-            10
+            $threshold = self::LOW_STOCK_THRESHOLD
         )->count();
 
         $averageOrderValue = $todayTransactions > 0
@@ -346,5 +350,65 @@ class ReportController extends Controller
                 ], 422)
             );
         }
+    }
+
+    public function slowMovingProducts(): JsonResponse
+    {
+        $this->validateDateRange();
+
+        $products = Product::query()
+            ->leftJoin(
+                'transaction_details',
+                'products.id',
+                '=',
+                'transaction_details.product_id'
+            )
+            ->leftJoin(
+                'transactions',
+                function ($join) {
+                    $join->on(
+                        'transaction_details.transaction_id',
+                        '=',
+                        'transactions.id'
+                    );
+
+                    if (request('start_date')) {
+                        $join->where(
+                            'transactions.created_at',
+                            '>=',
+                            request('start_date') . ' 00:00:00'
+                        );
+                    }
+
+                    if (request('end_date')) {
+                        $join->where(
+                            'transactions.created_at',
+                            '<=',
+                            request('end_date') . ' 23:59:59'
+                        );
+                    }
+                }
+            )
+            ->select(
+                'products.id as product_id',
+                'products.name as product_name',
+                DB::raw(
+                    'COALESCE(SUM(transaction_details.quantity), 0) as total_sold'
+                )
+            )
+            ->groupBy(
+                'products.id',
+                'products.name'
+            )
+            ->orderBy('total_sold')
+            ->orderBy('products.name')
+            ->limit(self::SLOW_MOVING_LIMIT)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Slow moving products report retrieved successfully',
+            'data' => $products,
+        ]);
     }
 }
