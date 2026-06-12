@@ -14,6 +14,8 @@ class ProductController extends Controller
     {
         $search = request('search');
 
+        $perPage = request()->get('per_page', 10);
+
         $products = Product::with('category')
             ->when($search, function ($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%");
