@@ -21,7 +21,7 @@ class ProductController extends Controller
                 $query->where('name', 'like', "%{$search}%");
             })
             ->latest()
-            ->paginate(10);
+            ->paginate($perPage);
 
         return response()->json([
             'success' => true,
