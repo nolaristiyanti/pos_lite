@@ -9,6 +9,7 @@ use App\Models\Transaction;
 use App\Models\TransactionDetail;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class TransactionController extends Controller
 {
@@ -69,18 +70,41 @@ class TransactionController extends Controller
         ], 201);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $query = Transaction::with('user')
-            ->whereDate(
-                'created_at',
-                today()
-            );
+        $query = Transaction::with('user');
 
         if (auth()->user()->role === 'cashier') {
             $query->where(
                 'user_id',
                 auth()->id()
+            );
+        }
+
+        if (
+            $request->filled('start_date') ||
+            $request->filled('end_date')
+        ) {
+            if ($request->filled('start_date')) {
+                $query->whereDate(
+                    'created_at',
+                    '>=',
+                    $request->start_date
+                );
+            }
+        
+            if ($request->filled('end_date')) {
+                $query->whereDate(
+                    'created_at',
+                    '<=',
+                    $request->end_date
+                );
+            }
+        } else {
+            // fallback behaviour lama
+            $query->whereDate(
+                'created_at',
+                today()
             );
         }
 
